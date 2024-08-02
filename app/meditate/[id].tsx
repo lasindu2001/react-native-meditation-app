@@ -6,12 +6,16 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { AntDesign } from '@expo/vector-icons'
 import CustomButton from '@/components/CustomButton'
 import { formatTime } from '@/utils/timeUtils'
+import { Audio } from 'expo-av'
+import { AUDIO_FILES, MEDITATION_DATA } from '@/constants/MeditationData'
 
 const Meditate = () => {
   const { id } = useLocalSearchParams();
 
   const [isMeditating, setIsMeditating] = useState(false);
-  const [secondsRemaining, setSecondsRemaining] = useState(10)
+  const [secondsRemaining, setSecondsRemaining] = useState(10);
+  const [audioSound, setSound] = useState<Audio.Sound>();
+  const [isPlayingAudio, setPlayingAudio] = useState(false);
 
   useEffect(() => {
     let timerId: NodeJS.Timeout
@@ -28,6 +32,40 @@ const Meditate = () => {
       clearTimeout(timerId);
     };
   }, [secondsRemaining, isMeditating])
+
+  useEffect(() => {
+    return () => {
+      setSecondsRemaining(10);
+      audioSound?.unloadAsync();
+    };
+  }, [audioSound]);
+
+  const initializeSound = async () => {
+    const audioFileName = MEDITATION_DATA[Number(id) - 1].audio;
+    const { sound } = await Audio.Sound.createAsync(
+      AUDIO_FILES[audioFileName]
+    );
+    setSound(sound);
+    return sound;
+  }
+
+  const togglePlayPause = async () => {
+    const sound = audioSound ? audioSound : await initializeSound();
+    const status = await sound?.getStatusAsync();
+    if (status?.isLoaded && !isPlayingAudio) {
+      await sound?.playAsync();
+      setPlayingAudio(true);
+    } else {
+      await sound?.pauseAsync();
+      setPlayingAudio(false);
+    }
+  }
+
+  const toggleMeditationSessionStatus = async () => {
+    if (secondsRemaining === 0) setSecondsRemaining(10);
+    setIsMeditating(!isMeditating);
+    await togglePlayPause();
+  }
 
   const { minutes, seconds } = formatTime(secondsRemaining)
 
@@ -59,7 +97,7 @@ const Meditate = () => {
             />
             <CustomButton
               title={isMeditating ? "Stop" : "Start Meditation"}
-              onPress={() => setIsMeditating(true)}
+              onPress={toggleMeditationSessionStatus}
               containerStyles="mt-4"
             />
           </View>
