@@ -2,7 +2,7 @@ import { View, Text, ImageBackground, Pressable } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import MEDITATION_IMAGES from '@/constants/meditation-images'
 import AppGradient from '@/components/AppGradient'
-import { router, useLocalSearchParams } from 'expo-router'
+import { Href, router, useLocalSearchParams } from 'expo-router'
 import { AntDesign } from '@expo/vector-icons'
 import CustomButton from '@/components/CustomButton'
 import { formatTime } from '@/utils/timeUtils'
@@ -67,6 +67,13 @@ const Meditate = () => {
     await togglePlayPause();
   }
 
+  const handleAdjustDuration = () => {
+    if (isMeditating) {
+      toggleMeditationSessionStatus()
+    }
+    router.push('/(modal)/adjust-meditation-duration' as Href<string | object>)
+  }
+
   const { minutes, seconds } = formatTime(secondsRemaining)
 
   return (
@@ -93,7 +100,7 @@ const Meditate = () => {
           <View className="mb-5">
             <CustomButton
               title="Adjust Duration"
-              onPress={() => console.log('adjust')}
+              onPress={handleAdjustDuration}
             />
             <CustomButton
               title={isMeditating ? "Stop" : "Start Meditation"}

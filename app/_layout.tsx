@@ -36,6 +36,10 @@ const RootLayout = () => {
         name="meditate/[id]"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="(modal)/adjust-meditation-duration"
+        options={{ headerShown: false }}
+      />
     </Stack>
   )
 }
